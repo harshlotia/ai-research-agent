@@ -45,7 +45,6 @@ with st.sidebar:
     st.title("🔍 Research Agent")
     st.divider()
 
-    st.subheader("⚙️ Settings")
     depth_option = st.selectbox(
         "Research depth",
         ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
