@@ -2,7 +2,7 @@
 
 An AI-powered research assistant that autonomously searches the web and generates comprehensive, cited research reports on any topic.
 
-Built with **Claude Sonnet** (Anthropic) + **Tavily** search + **LangGraph** ReAct agent + **Streamlit** UI.
+Built with **Claude Sonnet** (Anthropic) + **DuckDuckGo** search + **LangGraph** ReAct agent + **Streamlit** UI.
 
 ---
 
@@ -23,7 +23,7 @@ Built with **Claude Sonnet** (Anthropic) + **Tavily** search + **LangGraph** ReA
 |---|---|
 | LLM | Claude Sonnet (`claude-sonnet-4-6`) via Anthropic API |
 | Agent Framework | LangGraph `create_react_agent` (ReAct loop) |
-| Web Search | Tavily Search API |
+| Web Search | DuckDuckGo Search (free, no API key) |
 | Frontend | Streamlit |
 | Database | SQLite (via Python stdlib) |
 | Deployment | Streamlit Community Cloud |
@@ -55,9 +55,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up API keys
+### 4. Set up API key
 
-Copy `.env.example` to `.env` and fill in your keys:
+Copy `.env.example` to `.env` and fill in your key:
 
 ```bash
 cp .env.example .env
@@ -65,11 +65,11 @@ cp .env.example .env
 
 ```env
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
-TAVILY_API_KEY=your_tavily_api_key_here
 ```
 
 - **Anthropic API key** → [console.anthropic.com](https://console.anthropic.com/)
-- **Tavily API key** (free: 1000 searches/month) → [tavily.com](https://tavily.com/)
+
+> DuckDuckGo search is free and requires no API key.
 
 ### 5. Run the app
 
@@ -107,9 +107,9 @@ User query
     ▼
 LangGraph ReAct Agent (Claude Sonnet)
     │
-    ├─► Tavily Search (call 1) ──► results
-    ├─► Tavily Search (call 2) ──► results
-    ├─► Tavily Search (call 3) ──► results
+    ├─► DuckDuckGo Search (call 1) ──► results
+    ├─► DuckDuckGo Search (call 2) ──► results
+    ├─► DuckDuckGo Search (call 3) ──► results
     │          ...
     ▼
 Synthesize all results into structured markdown report
@@ -130,7 +130,6 @@ The agent uses a [ReAct](https://arxiv.org/abs/2210.03629) loop — it reasons a
 4. Under **Advanced settings → Secrets**, add:
    ```toml
    ANTHROPIC_API_KEY = "your_key"
-   TAVILY_API_KEY = "your_key"
    ```
 5. Click **Deploy**
 
