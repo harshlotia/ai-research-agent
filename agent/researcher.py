@@ -54,6 +54,52 @@ Rules:
 - Never make up information not found in search results"""
 
 
+def stream_research(query: str, depth: str = "quick"):
+    """Stream the report token-by-token. Buffers until the # header
+    so any brief pre-report reasoning is silently dropped."""
+    max_results = 3 if depth == "quick" else 7
+
+    llm = ChatAnthropic(
+        model="claude-sonnet-4-6",
+        temperature=0,
+        max_tokens=4096,
+        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+    )
+    search = DuckDuckGoSearchResults(num_results=max_results)
+    agent = create_react_agent(llm, [search])
+
+    buffer = ""
+    report_started = False
+
+    for chunk, metadata in agent.stream(
+        {
+            "messages": [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=f"Research this topic thoroughly and produce a detailed report: {query}"),
+            ]
+        },
+        stream_mode="messages",
+    ):
+        if (
+            metadata.get("langgraph_node") == "agent"
+            and hasattr(chunk, "content")
+            and isinstance(chunk.content, str)
+            and chunk.content
+        ):
+            if not report_started:
+                buffer += chunk.content
+                if "#" in buffer:
+                    report_started = True
+                    yield buffer[buffer.find("#"):]
+                    buffer = ""
+            else:
+                yield chunk.content
+
+    # Fallback: if the model never emitted a # header, flush whatever we have
+    if not report_started and buffer:
+        yield buffer
+
+
 def run_research(query: str, depth: str = "quick") -> dict:
     max_results = 3 if depth == "quick" else 7
 

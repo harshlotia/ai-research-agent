@@ -6,7 +6,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
-from agent.researcher import run_research
+from agent.researcher import run_research, stream_research
 from utils.database import delete_report, get_history, get_report, init_db, save_report
 
 # Load .env for local dev; Streamlit Cloud uses st.secrets
@@ -163,17 +163,17 @@ if run_clicked:
     elif not os.getenv("ANTHROPIC_API_KEY"):
         st.error("ANTHROPIC_API_KEY missing — add it to your `.env` file.")
     else:
-        with st.spinner(f"Searching the web and writing your report… (this takes ~{30 if depth == 'quick' else 60}s)"):
-            try:
-                result = run_research(query.strip(), depth=depth)
-                save_report(user_id, query.strip(), depth, result["report"])
-                st.session_state.current_report = result["report"]
-                st.session_state.current_query = query.strip()
-                st.session_state.current_depth = depth
-                st.rerun()
-            except Exception as e:
-                st.error(f"Research failed: {e}")
-                st.info("Double-check your API keys in `.env` and try again.")
+        try:
+            st.caption("Searching the web — your report will appear below as it's written…")
+            full_report = st.write_stream(stream_research(query.strip(), depth=depth))
+            save_report(user_id, query.strip(), depth, full_report)
+            st.session_state.current_report = full_report
+            st.session_state.current_query = query.strip()
+            st.session_state.current_depth = depth
+            st.rerun()
+        except Exception as e:
+            st.error(f"Research failed: {e}")
+            st.info("Double-check your API keys in `.env` and try again.")
 
 # ── Report display ────────────────────────────────────────────────────────────
 if st.session_state.get("current_report"):
