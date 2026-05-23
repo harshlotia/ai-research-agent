@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 
 import streamlit as st
@@ -21,6 +22,11 @@ if not os.getenv("ANTHROPIC_API_KEY"):
         pass
 
 init_db()
+
+# Assign a unique ID per browser session — persists across reruns within the same tab
+if "user_id" not in st.session_state:
+    st.session_state.user_id = str(uuid.uuid4())
+user_id = st.session_state.user_id
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -46,7 +52,7 @@ with st.sidebar:
     st.title("🔍 Research Agent")
     st.caption("History")
 
-    history = get_history(limit=15)
+    history = get_history(user_id, limit=15)
     if history:
         for item in history:
             label = item["query"][:38] + "…" if len(item["query"]) > 38 else item["query"]
@@ -59,7 +65,7 @@ with st.sidebar:
                     st.rerun()
             with col_del:
                 if st.button("✕", key=f"d_{item['id']}"):
-                    delete_report(item["id"])
+                    delete_report(item["id"], user_id)
                     if st.session_state.get("current_query") == item["query"]:
                         st.session_state.pop("current_report", None)
                         st.session_state.pop("current_query", None)
@@ -153,7 +159,7 @@ if run_clicked:
         with st.spinner(f"Searching the web and writing your report… (this takes ~{30 if depth == 'quick' else 60}s)"):
             try:
                 result = run_research(query.strip(), depth=depth)
-                save_report(query.strip(), depth, result["report"])
+                save_report(user_id, query.strip(), depth, result["report"])
                 st.session_state.current_report = result["report"]
                 st.session_state.current_query = query.strip()
                 st.session_state.current_depth = depth
