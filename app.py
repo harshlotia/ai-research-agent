@@ -164,19 +164,28 @@ if run_clicked:
         st.error("ANTHROPIC_API_KEY missing — add it to your `.env` file.")
     else:
         try:
-            st.caption("Searching the web — your report will appear below as it's written…")
+            st.caption("Searching the web — report appears as it's written…")
             full_report = st.write_stream(stream_research(query.strip(), depth=depth))
-            save_report(user_id, query.strip(), depth, full_report)
-            st.session_state.current_report = full_report
-            st.session_state.current_query = query.strip()
-            st.session_state.current_depth = depth
-            st.rerun()
+            if full_report:
+                save_report(user_id, query.strip(), depth, full_report)
+                st.session_state.current_report = full_report
+                st.session_state.current_query = query.strip()
+                st.session_state.current_depth = depth
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                st.download_button(
+                    "📥 Download Report",
+                    data=full_report,
+                    file_name=f"research_{ts}.md",
+                    mime="text/markdown",
+                )
+            else:
+                st.error("No report was generated — please try again.")
         except Exception as e:
             st.error(f"Research failed: {e}")
             st.info("Double-check your API keys in `.env` and try again.")
 
-# ── Report display ────────────────────────────────────────────────────────────
-if st.session_state.get("current_report"):
+# ── Report display (history loads / page revisits) ────────────────────────────
+if st.session_state.get("current_report") and not run_clicked:
     st.divider()
 
     depth_label = "Deep" if st.session_state.get("current_depth") == "deep" else "Quick"
