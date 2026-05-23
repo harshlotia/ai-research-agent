@@ -135,6 +135,3 @@ The agent uses a [ReAct](https://arxiv.org/abs/2210.03629) loop — it reasons a
 
 ---
 
-## License
-
-MIT
