@@ -115,8 +115,26 @@ with st.form("research_form"):
 components.html("""
 <script>
 (function () {
+    function fixHint() {
+        try {
+            window.parent.document.querySelectorAll('small').forEach(function (el) {
+                if (el.textContent.indexOf('Ctrl') !== -1) {
+                    el.textContent = 'Press Enter to submit';
+                }
+            });
+        } catch (e) {}
+    }
+
+    // Poll for 15 seconds to catch whenever Streamlit re-renders the element
+    var ticks = 0;
+    var timer = setInterval(function () {
+        fixHint();
+        if (++ticks > 75) clearInterval(timer);
+    }, 200);
+
     function setup() {
         try {
+            fixHint();
             var doc = window.parent.document;
             doc.querySelectorAll('textarea').forEach(function (ta) {
                 if (ta._enterBound) return;
@@ -150,7 +168,7 @@ components.html("""
 
     setup();
     try {
-        new MutationObserver(setup).observe(
+        new MutationObserver(function () { setup(); fixHint(); }).observe(
             window.parent.document.body,
             { childList: true, subtree: true }
         );
