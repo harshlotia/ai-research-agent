@@ -40,6 +40,13 @@ st.set_page_config(
 st.markdown("""
 <style>
     .block-container { padding-top: 2rem; }
+    /* Replace "Press Ctrl+Enter to submit form" with "Press Enter to submit" */
+    div[data-testid="stTextArea"] small,
+    section[data-testid="stForm"] small,
+    .stTextArea small { font-size: 0 !important; color: transparent !important; }
+    div[data-testid="stTextArea"] small::after,
+    section[data-testid="stForm"] small::after,
+    .stTextArea small::after { content: "Press Enter to submit"; font-size: 0.75rem; color: rgba(250,250,250,0.4); }
     .report-header { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
     div[data-testid="stMarkdownContainer"] h1 { border-bottom: 2px solid #667eea; padding-bottom: 0.4rem; }
     div[data-testid="stMarkdownContainer"] h2 { color: #4a5568; }
@@ -111,14 +118,6 @@ components.html("""
     function setup() {
         try {
             var doc = window.parent.document;
-            // Replace "Press Ctrl+Enter to submit form" with "Press Enter to submit"
-            doc.querySelectorAll(
-                'div[data-testid="stTextArea"] small, .stTextArea small'
-            ).forEach(function (el) {
-                if (el.textContent.toLowerCase().includes('ctrl')) {
-                    el.textContent = 'Press Enter to submit';
-                }
-            });
             doc.querySelectorAll('textarea').forEach(function (ta) {
                 if (ta._enterBound) return;
                 ta._enterBound = true;
