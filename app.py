@@ -40,6 +40,8 @@ st.set_page_config(
 st.markdown("""
 <style>
     .block-container { padding-top: 2rem; }
+    /* hide "Press Ctrl+Enter to apply" hint on the textarea */
+    div[data-testid="stTextArea"] small { display: none !important; }
     .report-header { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
     div[data-testid="stMarkdownContainer"] h1 { border-bottom: 2px solid #667eea; padding-bottom: 0.4rem; }
     div[data-testid="stMarkdownContainer"] h2 { color: #4a5568; }
@@ -78,23 +80,23 @@ st.title("AI Research Agent")
 st.caption("Enter any topic or question — I'll search the web and write you a full cited report.")
 st.divider()
 
-query = st.text_area(
-    "What do you want to research?",
-    placeholder="e.g. Latest breakthroughs in fusion energy",
-    height=100,
-    label_visibility="collapsed",
-    key="query_input",
-)
-
-col_depth, col_btn = st.columns([1, 2])
-with col_depth:
-    depth_option = st.selectbox(
-        "Depth",
-        ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
+with st.form("research_form"):
+    query = st.text_area(
+        "What do you want to research?",
+        placeholder="e.g. Latest breakthroughs in fusion energy",
+        height=100,
         label_visibility="collapsed",
+        key="query_input",
     )
-with col_btn:
-    run_clicked = st.button("🚀  Start Research", type="primary", use_container_width=True)
+    col_depth, col_btn = st.columns([1, 2])
+    with col_depth:
+        depth_option = st.selectbox(
+            "Depth",
+            ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
+            label_visibility="collapsed",
+        )
+    with col_btn:
+        run_clicked = st.form_submit_button("🚀  Start Research", type="primary", use_container_width=True)
 
 # Enter → submit,  Shift+Enter / Ctrl+Enter → new line
 components.html("""
@@ -123,13 +125,10 @@ components.html("""
                         return;
                     }
 
-                    // Plain Enter → click the Start Research button
+                    // Plain Enter → submit the form
                     e.preventDefault();
                     e.stopImmediatePropagation();
-                    var btns = Array.from(doc.querySelectorAll('button'));
-                    var btn = btns.find(function (b) {
-                        return b.innerText && b.innerText.indexOf('Start Research') !== -1;
-                    });
+                    var btn = doc.querySelector('button[kind="primaryFormSubmit"]');
                     if (btn) btn.click();
                 }, true);
             });
