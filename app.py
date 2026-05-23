@@ -159,7 +159,10 @@ components.html("""
                     // Plain Enter → submit the form
                     e.preventDefault();
                     e.stopImmediatePropagation();
-                    var btn = doc.querySelector('button[kind="primaryFormSubmit"]');
+                    var btn = doc.querySelector('button[kind="primaryFormSubmit"]') ||
+                              doc.querySelector('button[data-testid="baseButton-primaryFormSubmit"]') ||
+                              doc.querySelector('[data-testid="stFormSubmitButton"] button') ||
+                              doc.querySelector('[data-testid="stForm"] button[type="submit"]');
                     if (btn) btn.click();
                 }, true);
             });
