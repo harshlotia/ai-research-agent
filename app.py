@@ -43,17 +43,7 @@ st.markdown("""
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🔍 Research Agent")
-    st.divider()
-
-    depth_option = st.selectbox(
-        "Research depth",
-        ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
-        help="Deep mode runs more searches for richer reports",
-    )
-    depth = "deep" if depth_option.startswith("Deep") else "quick"
-
-    st.divider()
-    st.subheader("📚 History")
+    st.caption("History")
 
     history = get_history(limit=15)
     if history:
@@ -74,30 +64,31 @@ with st.sidebar:
                         st.session_state.pop("current_query", None)
                     st.rerun()
     else:
-        st.caption("No history yet — run your first research!")
+        st.caption("No searches yet.")
 
 # ── Main area ─────────────────────────────────────────────────────────────────
 st.title("AI Research Agent")
-st.markdown("Enter any topic or question and I'll search the web, read the sources, and write you a full report.")
-
+st.caption("Enter any topic or question — I'll search the web and write you a full cited report.")
 st.divider()
 
 with st.form("research_form"):
     query = st.text_area(
         "What do you want to research?",
-        placeholder="e.g.  Latest breakthroughs in fusion energy\n     How does the CRISPR gene editing work?\n     State of the electric vehicle market in 2025",
+        placeholder="e.g. Latest breakthroughs in fusion energy",
         height=100,
+        label_visibility="collapsed",
     )
-    col_run, col_tip = st.columns([2, 5])
-    with col_run:
-        run_clicked = st.form_submit_button("🚀  Start Research", type="primary", use_container_width=True)
-    with col_tip:
-        st.markdown(
-            "<small style='color:#888'>Try: <em>AI agent frameworks 2025</em> · "
-            "<em>Impact of microplastics on human health</em> · "
-            "<em>How does Transformer architecture work</em></small>",
-            unsafe_allow_html=True,
+    col_depth, col_btn = st.columns([1, 2])
+    with col_depth:
+        depth_option = st.selectbox(
+            "Depth",
+            ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
+            label_visibility="collapsed",
         )
+    with col_btn:
+        run_clicked = st.form_submit_button("🚀  Start Research", type="primary", use_container_width=True)
+
+depth = "deep" if depth_option.startswith("Deep") else "quick"
 
 # ── Validation & run ──────────────────────────────────────────────────────────
 if run_clicked:
