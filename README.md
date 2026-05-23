@@ -4,6 +4,8 @@ An AI-powered research assistant that autonomously searches the web and generate
 
 Built with **Claude Sonnet** (Anthropic) + **DuckDuckGo** search + **LangGraph** ReAct agent + **Streamlit** UI.
 
+**Live demo → [ai-research-agent-yv74luwzxrurhp8wziarhx.streamlit.app](https://ai-research-agent-yv74luwzxrurhp8wziarhx.streamlit.app/)**
+
 ---
 
 ## Features
