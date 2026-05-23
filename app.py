@@ -40,8 +40,11 @@ st.set_page_config(
 st.markdown("""
 <style>
     .block-container { padding-top: 2rem; }
-    /* hide "Press Ctrl+Enter to apply" hint on the textarea */
-    div[data-testid="stTextArea"] small { display: none !important; }
+    /* hide Ctrl+Enter hint on textarea (all Streamlit versions) */
+    div[data-testid="stTextArea"] small,
+    div[data-testid="stTextArea"] ~ small,
+    section[data-testid="stForm"] div[data-testid="stTextArea"] small,
+    .stTextArea small { display: none !important; }
     .report-header { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
     div[data-testid="stMarkdownContainer"] h1 { border-bottom: 2px solid #667eea; padding-bottom: 0.4rem; }
     div[data-testid="stMarkdownContainer"] h2 { color: #4a5568; }
