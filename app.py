@@ -52,6 +52,14 @@ st.markdown("""
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🔍 Research Agent")
+
+    if st.button("+ New Research", use_container_width=True):
+        for key in ("current_report", "current_query", "current_depth"):
+            st.session_state.pop(key, None)
+        st.session_state["query_input"] = ""
+        st.rerun()
+
+    st.divider()
     st.caption("History")
 
     history = get_history(user_id, limit=15)
