@@ -40,13 +40,18 @@ st.set_page_config(
 st.markdown("""
 <style>
     .block-container { padding-top: 2rem; }
-    /* Replace "Press Ctrl+Enter to submit form" with "Press Enter to submit" */
-    div[data-testid="stTextArea"] small,
-    section[data-testid="stForm"] small,
-    .stTextArea small { font-size: 0 !important; color: transparent !important; }
-    div[data-testid="stTextArea"] small::after,
-    section[data-testid="stForm"] small::after,
-    .stTextArea small::after { content: "Press Enter to submit"; font-size: 0.75rem; color: rgba(250,250,250,0.4); }
+    /* Hide the original Ctrl+Enter hint */
+    [data-testid="InputInstructions"] { visibility: hidden !important; position: relative !important; }
+    /* Show our custom text in its place */
+    [data-testid="InputInstructions"]::after {
+        content: "Press Enter to submit";
+        visibility: visible !important;
+        position: absolute !important;
+        right: 0; bottom: 0;
+        font-size: 0.75rem;
+        color: rgba(250,250,250,0.4);
+        white-space: nowrap;
+    }
     .report-header { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
     div[data-testid="stMarkdownContainer"] h1 { border-bottom: 2px solid #667eea; padding-bottom: 0.4rem; }
     div[data-testid="stMarkdownContainer"] h2 { color: #4a5568; }
@@ -117,7 +122,9 @@ components.html("""
 (function () {
     function fixHint() {
         try {
-            window.parent.document.querySelectorAll('small').forEach(function (el) {
+            var doc = window.parent.document;
+            // Target by data-testid first, fall back to any small with "Ctrl"
+            doc.querySelectorAll('[data-testid="InputInstructions"], small').forEach(function (el) {
                 if (el.textContent.indexOf('Ctrl') !== -1) {
                     el.textContent = 'Press Enter to submit';
                 }
