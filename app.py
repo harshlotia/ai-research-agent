@@ -43,7 +43,6 @@ st.markdown("""
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🔍 Research Agent")
-    st.caption("Powered by Claude + DuckDuckGo")
     st.divider()
 
     st.subheader("⚙️ Settings")
