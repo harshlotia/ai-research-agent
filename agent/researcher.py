@@ -54,32 +54,33 @@ Rules:
 - Never make up information not found in search results"""
 
 
-def run_research(query: str, depth: str = "quick") -> dict:
-    max_results = 3 if depth == "quick" else 7
+def stream_research(query: str, depth: str = "quick"):
+    # Haiku for quick (3-4x faster), Sonnet for deep (higher quality)
+    model = "claude-haiku-4-5-20251001" if depth == "quick" else "claude-sonnet-4-6"
+    max_results = 2 if depth == "quick" else 5
 
     llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
+        model=model,
         temperature=0,
         max_tokens=4096,
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
     )
-
     search = DuckDuckGoSearchResults(num_results=max_results)
-
     agent = create_react_agent(llm, [search])
 
-    result = agent.invoke({
-        "messages": [
-            SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=f"Research this topic thoroughly and produce a detailed report: {query}"),
-        ]
-    })
-
-    final_report = result["messages"][-1].content
-
-    return {
-        "report": final_report,
-        "query": query,
-        "depth": depth,
-        "steps": len(result["messages"]),
-    }
+    for chunk, metadata in agent.stream(
+        {
+            "messages": [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=f"Research this topic thoroughly and produce a detailed report: {query}"),
+            ]
+        },
+        stream_mode="messages",
+    ):
+        if (
+            metadata.get("langgraph_node") == "agent"
+            and hasattr(chunk, "content")
+            and isinstance(chunk.content, str)
+            and chunk.content
+        ):
+            yield chunk.content
