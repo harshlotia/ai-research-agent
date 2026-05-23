@@ -169,6 +169,12 @@ if run_clicked:
         try:
             st.caption("Searching the web — report appears as it's written…")
             full_report = st.write_stream(stream_research(query.strip(), depth=depth))
+            if not full_report:
+                # Streaming yielded nothing — fall back to blocking call
+                with st.spinner("Generating report…"):
+                    result = run_research(query.strip(), depth=depth)
+                full_report = result["report"]
+                st.markdown(full_report)
             if full_report:
                 save_report(user_id, query.strip(), depth, full_report)
                 st.session_state.current_report = full_report

@@ -80,20 +80,30 @@ def stream_research(query: str, depth: str = "quick"):
         },
         stream_mode="messages",
     ):
-        if (
-            metadata.get("langgraph_node") == "agent"
-            and hasattr(chunk, "content")
-            and isinstance(chunk.content, str)
-            and chunk.content
-        ):
+        if metadata.get("langgraph_node") == "agent" and hasattr(chunk, "content"):
+            content = chunk.content
+            if isinstance(content, str):
+                text = content
+            elif isinstance(content, list):
+                text = "".join(
+                    block.get("text", "")
+                    for block in content
+                    if isinstance(block, dict) and block.get("type") == "text"
+                )
+            else:
+                text = ""
+
+            if not text:
+                continue
+
             if not report_started:
-                buffer += chunk.content
+                buffer += text
                 if "#" in buffer:
                     report_started = True
                     yield buffer[buffer.find("#"):]
                     buffer = ""
             else:
-                yield chunk.content
+                yield text
 
     # Fallback: if the model never emitted a # header, flush whatever we have
     if not report_started and buffer:
