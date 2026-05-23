@@ -84,22 +84,22 @@ st.markdown("Enter any topic or question and I'll search the web, read the sourc
 
 st.divider()
 
-query = st.text_area(
-    "What do you want to research?",
-    placeholder="e.g.  Latest breakthroughs in fusion energy\n     How does the CRISPR gene editing work?\n     State of the electric vehicle market in 2025",
-    height=100,
-)
-
-col_run, col_tip = st.columns([2, 5])
-with col_run:
-    run_clicked = st.button("🚀  Start Research", type="primary", use_container_width=True)
-with col_tip:
-    st.markdown(
-        "<small style='color:#888'>Try: <em>AI agent frameworks 2025</em> · "
-        "<em>Impact of microplastics on human health</em> · "
-        "<em>How does Transformer architecture work</em></small>",
-        unsafe_allow_html=True,
+with st.form("research_form"):
+    query = st.text_area(
+        "What do you want to research?",
+        placeholder="e.g.  Latest breakthroughs in fusion energy\n     How does the CRISPR gene editing work?\n     State of the electric vehicle market in 2025",
+        height=100,
     )
+    col_run, col_tip = st.columns([2, 5])
+    with col_run:
+        run_clicked = st.form_submit_button("🚀  Start Research", type="primary", use_container_width=True)
+    with col_tip:
+        st.markdown(
+            "<small style='color:#888'>Try: <em>AI agent frameworks 2025</em> · "
+            "<em>Impact of microplastics on human health</em> · "
+            "<em>How does Transformer architecture work</em></small>",
+            unsafe_allow_html=True,
+        )
 
 # ── Validation & run ──────────────────────────────────────────────────────────
 if run_clicked:
