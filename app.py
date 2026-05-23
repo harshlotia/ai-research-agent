@@ -72,10 +72,9 @@ st.caption("Enter any topic or question — I'll search the web and write you a 
 st.divider()
 
 with st.form("research_form"):
-    query = st.text_area(
+    query = st.text_input(
         "What do you want to research?",
         placeholder="e.g. Latest breakthroughs in fusion energy",
-        height=100,
         label_visibility="collapsed",
     )
     col_depth, col_btn = st.columns([1, 2])
