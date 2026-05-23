@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import streamlit as st
+import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 from agent.researcher import run_research
@@ -71,21 +72,74 @@ st.title("AI Research Agent")
 st.caption("Enter any topic or question — I'll search the web and write you a full cited report.")
 st.divider()
 
-with st.form("research_form"):
-    query = st.text_input(
-        "What do you want to research?",
-        placeholder="e.g. Latest breakthroughs in fusion energy",
+query = st.text_area(
+    "What do you want to research?",
+    placeholder="e.g. Latest breakthroughs in fusion energy",
+    height=100,
+    label_visibility="collapsed",
+    key="query_input",
+)
+
+col_depth, col_btn = st.columns([1, 2])
+with col_depth:
+    depth_option = st.selectbox(
+        "Depth",
+        ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
         label_visibility="collapsed",
     )
-    col_depth, col_btn = st.columns([1, 2])
-    with col_depth:
-        depth_option = st.selectbox(
-            "Depth",
-            ["Quick — 3 sources (~30s)", "Deep — 7 sources (~60s)"],
-            label_visibility="collapsed",
-        )
-    with col_btn:
-        run_clicked = st.form_submit_button("🚀  Start Research", type="primary", use_container_width=True)
+with col_btn:
+    run_clicked = st.button("🚀  Start Research", type="primary", use_container_width=True)
+
+# Enter → submit,  Shift+Enter / Ctrl+Enter → new line
+components.html("""
+<script>
+(function () {
+    function setup() {
+        try {
+            var doc = window.parent.document;
+            doc.querySelectorAll('textarea').forEach(function (ta) {
+                if (ta._enterBound) return;
+                ta._enterBound = true;
+                ta.addEventListener('keydown', function (e) {
+                    if (e.key !== 'Enter') return;
+
+                    if (e.shiftKey || e.ctrlKey) {
+                        // Insert a real newline via React's value setter
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        var s = ta.selectionStart, end = ta.selectionEnd;
+                        var setter = Object.getOwnPropertyDescriptor(
+                            window.parent.HTMLTextAreaElement.prototype, 'value'
+                        ).set;
+                        setter.call(ta, ta.value.slice(0, s) + '\\n' + ta.value.slice(end));
+                        ta.selectionStart = ta.selectionEnd = s + 1;
+                        ta.dispatchEvent(new Event('input', { bubbles: true }));
+                        return;
+                    }
+
+                    // Plain Enter → click the Start Research button
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var btns = Array.from(doc.querySelectorAll('button'));
+                    var btn = btns.find(function (b) {
+                        return b.innerText && b.innerText.indexOf('Start Research') !== -1;
+                    });
+                    if (btn) btn.click();
+                }, true);
+            });
+        } catch (err) {}
+    }
+
+    setup();
+    try {
+        new MutationObserver(setup).observe(
+            window.parent.document.body,
+            { childList: true, subtree: true }
+        );
+    } catch (err) {}
+})();
+</script>
+""", height=0)
 
 depth = "deep" if depth_option.startswith("Deep") else "quick"
 
