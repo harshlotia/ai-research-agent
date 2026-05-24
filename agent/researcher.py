@@ -1,7 +1,7 @@
 import os
 from langchain_anthropic import ChatAnthropic
 from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
 
 SYSTEM_PROMPT = """You are an expert research analyst with real-time web search access.
@@ -108,6 +108,43 @@ def stream_research(query: str, depth: str = "quick"):
     # Fallback: if the model never emitted a # header, flush whatever we have
     if not report_started and buffer:
         yield buffer
+
+
+def stream_chat(report: str, history: list, question: str):
+    """Stream a conversational answer grounded in the research report."""
+    llm = ChatAnthropic(
+        model="claude-sonnet-4-6",
+        temperature=0.7,
+        max_tokens=2048,
+        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+    )
+
+    system = (
+        "You are a research assistant. The user has just read the following research report "
+        "and wants to ask follow-up questions about it.\n\n"
+        "RESEARCH REPORT:\n"
+        f"{report}\n\n"
+        "Answer questions accurately and conversationally. Elaborate on points in the report, "
+        "explain concepts, or discuss implications. If a question goes beyond the report, "
+        "draw on your general knowledge but say so briefly."
+    )
+
+    msgs = [SystemMessage(content=system)]
+    for msg in history:
+        cls = HumanMessage if msg["role"] == "user" else AIMessage
+        msgs.append(cls(content=msg["content"]))
+    msgs.append(HumanMessage(content=question))
+
+    for chunk in llm.stream(msgs):
+        content = chunk.content
+        if isinstance(content, str):
+            yield content
+        elif isinstance(content, list):
+            yield "".join(
+                block.get("text", "")
+                for block in content
+                if isinstance(block, dict) and block.get("type") == "text"
+            )
 
 
 def run_research(query: str, depth: str = "quick") -> dict:

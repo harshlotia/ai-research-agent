@@ -6,7 +6,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
-from agent.researcher import run_research, stream_research
+from agent.researcher import run_research, stream_chat, stream_research
 from utils.database import delete_report, get_history, get_report, init_db, save_report
 
 # Load .env for local dev; Streamlit Cloud uses st.secrets
@@ -64,7 +64,7 @@ with st.sidebar:
     st.title("🔍 Research Agent")
 
     if st.button("+ New Research", use_container_width=True):
-        for key in ("current_report", "current_query", "current_depth"):
+        for key in ("current_report", "current_query", "current_depth", "chat_messages"):
             st.session_state.pop(key, None)
         st.session_state["query_input"] = ""
         st.rerun()
@@ -82,6 +82,7 @@ with st.sidebar:
                     st.session_state.current_report = item["report"]
                     st.session_state.current_query = item["query"]
                     st.session_state.current_depth = item["depth"]
+                    st.session_state.pop("chat_messages", None)
                     st.rerun()
             with col_del:
                 if st.button("✕", key=f"d_{item['id']}"):
@@ -202,6 +203,7 @@ if run_clicked:
         st.error("ANTHROPIC_API_KEY missing — add it to your `.env` file.")
     else:
         try:
+            st.session_state.pop("chat_messages", None)
             st.caption("Searching the web — report appears as it's written…")
             full_report = st.write_stream(stream_research(query.strip(), depth=depth))
             if not full_report:
@@ -230,6 +232,7 @@ if run_clicked:
 
 # ── Report display (history loads / page revisits) ────────────────────────────
 if st.session_state.get("current_report") and not run_clicked:
+    # (after a fresh run the report was already streamed above; only re-render from history)
     st.divider()
 
     depth_label = "Deep" if st.session_state.get("current_depth") == "deep" else "Quick"
@@ -253,3 +256,32 @@ if st.session_state.get("current_report") and not run_clicked:
         )
 
     st.markdown(st.session_state["current_report"])
+
+# ── Follow-up chat ────────────────────────────────────────────────────────────
+if st.session_state.get("current_report"):
+    st.divider()
+    st.caption("Ask follow-up questions about this report")
+
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
+
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if question := st.chat_input("Ask anything about this report…"):
+        st.session_state.chat_messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            response = st.write_stream(
+                stream_chat(
+                    st.session_state["current_report"],
+                    st.session_state.chat_messages[:-1],
+                    question,
+                )
+            )
+
+        if response:
+            st.session_state.chat_messages.append({"role": "assistant", "content": response})
