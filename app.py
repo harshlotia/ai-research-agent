@@ -149,8 +149,8 @@ components.html("""
                 ta.addEventListener('keydown', function (e) {
                     if (e.key !== 'Enter') return;
 
-                    if (e.shiftKey || e.ctrlKey) {
-                        // Insert a real newline via React's value setter
+                    // Shift+Enter → insert a real newline
+                    if (e.shiftKey) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         var s = ta.selectionStart, end = ta.selectionEnd;
@@ -163,14 +163,19 @@ components.html("""
                         return;
                     }
 
-                    // Plain Enter → submit the form
+                    // Skip synthetic events (our own re-dispatched Ctrl+Enter)
+                    if (!e.isTrusted) return;
+
+                    // Ctrl+Enter → already submits natively, let it through
+                    if (e.ctrlKey) return;
+
+                    // Plain Enter → re-dispatch as Ctrl+Enter so Streamlit submits
                     e.preventDefault();
                     e.stopImmediatePropagation();
-                    var btn = doc.querySelector('button[kind="primaryFormSubmit"]') ||
-                              doc.querySelector('button[data-testid="baseButton-primaryFormSubmit"]') ||
-                              doc.querySelector('[data-testid="stFormSubmitButton"] button') ||
-                              doc.querySelector('[data-testid="stForm"] button[type="submit"]');
-                    if (btn) btn.click();
+                    ta.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'Enter', keyCode: 13, ctrlKey: true,
+                        bubbles: true, cancelable: true
+                    }));
                 }, true);
             });
         } catch (err) {}
